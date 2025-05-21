@@ -1,9 +1,9 @@
 
 import type { NextRequest } from 'next/server';
-import { diagnoseIllness, type DiagnoseIllnessInput, type DiagnoseIllnessOutput } from '@/ai/flows/diagnose-illness'; // General diagnosis
+import { diagnoseSTI, type DiagnoseSTIInput, type DiagnoseSTIOutput } from '@/ai/flows/diagnose-sti';
 import { z } from 'zod';
 
-const DiagnoseRequestSchema = z.object({
+const DiagnoseSTIRequestSchema = z.object({
   symptoms: z.string().min(1, "Symptoms are required"),
 });
 
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    const validationResult = DiagnoseRequestSchema.safeParse(body);
+    const validationResult = DiagnoseSTIRequestSchema.safeParse(body);
     if (!validationResult.success) {
       return new Response(JSON.stringify({ error: "Invalid request body", details: validationResult.error.flatten() }), {
         status: 400,
@@ -19,17 +19,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const input: DiagnoseIllnessInput = validationResult.data;
-    const result: DiagnoseIllnessOutput = await diagnoseIllness(input); // Calls general diagnosis flow
+    const input: DiagnoseSTIInput = validationResult.data;
+    const result: DiagnoseSTIOutput = await diagnoseSTI(input);
 
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('API Diagnose (General) Error:', error);
+    console.error('API Diagnose STI Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-    return new Response(JSON.stringify({ error: 'Failed to process general diagnosis request', details: errorMessage }), {
+    return new Response(JSON.stringify({ error: 'Failed to process STI diagnosis request', details: errorMessage }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

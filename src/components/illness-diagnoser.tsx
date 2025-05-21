@@ -1,20 +1,34 @@
 
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import NextImage from "next/image";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { diagnoseIllness, type DiagnoseIllnessInput, type DiagnoseIllnessOutput } from "@/ai/flows/diagnose-illness";
-import { generateIllnessImage, type GenerateIllnessImageInput } from "@/ai/flows/generate-illness-image";
 import { Loader2, AlertTriangle, Search, Image as ImageIconLucide, Download, Sparkles, MessageSquareWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export function IllnessDiagnoser() {
+// Importar los flows y tipos específicos
+import { diagnoseIllness, type DiagnoseIllnessInput, type DiagnoseIllnessOutput as DiagnoseGeneralOutput } from "@/ai/flows/diagnose-illness";
+import { diagnoseSTI, type DiagnoseSTIInput, type DiagnoseSTIOutput } from "@/ai/flows/diagnose-sti";
+import { generateIllnessImage, type GenerateIllnessImageInput as GenerateGeneralImageInput } from "@/ai/flows/generate-illness-image";
+import { generateSTIImage, type GenerateSTIImageInput } from "@/ai/flows/generate-sti-image";
+import type { GenerateIllnessImageOutput } from "@/ai/flows/generate-illness-image"; // Output es similar
+
+type DiagnosisMode = 'STI' | 'General';
+type CombinedDiagnosisOutput = (DiagnoseGeneralOutput | DiagnoseSTIOutput) & { detectedTopic?: 'STI' | 'General' | 'Unknown' };
+
+
+interface IllnessDiagnoserProps {
+  mode: DiagnosisMode;
+  onModeSwitchSuggested: (newMode: DiagnosisMode) => void;
+}
+
+export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnoserProps) {
   const [symptoms, setSymptoms] = useState("");
-  const [diagnosisResult, setDiagnosisResult] = useState<DiagnoseIllnessOutput | null>(null);
+  const [diagnosisResult, setDiagnosisResult] = useState<CombinedDiagnosisOutput | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isLoadingDiagnosis, setIsLoadingDiagnosis] = useState(false);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
@@ -22,6 +36,14 @@ export function IllnessDiagnoser() {
   const [isPendingDiagnosis, startTransitionDiagnosis] = useTransition();
   const [isPendingImage, startTransitionImage] = useTransition();
   const { toast } = useToast();
+
+  // Reset state when mode changes
+  useEffect(() => {
+    setSymptoms("");
+    setDiagnosisResult(null);
+    setGeneratedImageUrl(null);
+    setError(null);
+  }, [mode]);
 
   const handleDiagnose = () => {
     if (!symptoms.trim()) {
@@ -38,14 +60,25 @@ export function IllnessDiagnoser() {
 
     startTransitionDiagnosis(async () => {
       try {
-        const input: DiagnoseIllnessInput = { symptoms: symptoms.trim() };
-        const result = await diagnoseIllness(input);
+        let result: CombinedDiagnosisOutput;
+        if (mode === 'STI') {
+          const input: DiagnoseSTIInput = { symptoms: symptoms.trim() };
+          result = await diagnoseSTI(input);
+        } else {
+          const input: DiagnoseIllnessInput = { symptoms: symptoms.trim() };
+          result = await diagnoseIllness(input);
+        }
         setDiagnosisResult(result);
+
+        if (result.detectedTopic && result.detectedTopic !== 'Unknown' && result.detectedTopic !== mode) {
+          onModeSwitchSuggested(result.detectedTopic);
+        }
+
       } catch (e) {
-        console.error("Error en el pre-diagnóstico:", e);
+        console.error(`Error en el pre-diagnóstico (${mode}):`, e);
         setError("Ocurrió un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde.");
         toast({
-          title: "Error de Diagnóstico",
+          title: "Error de Pre-Diagnóstico",
           description: "No se pudo obtener el pre-diagnóstico. Intenta nuevamente.",
           variant: "destructive",
         });
@@ -57,8 +90,7 @@ export function IllnessDiagnoser() {
 
   const handleGenerateImageFromDiagnosis = () => {
     if (!diagnosisResult?.potentialIllnessName) {
-      // Este caso no debería ocurrir si el botón solo se muestra cuando hay un potentialIllnessName
-      setError("No hay un nombre de enfermedad potencial para generar la imagen desde el diagnóstico.");
+      setError("No hay un nombre de enfermedad potencial para generar la imagen.");
       return;
     }
 
@@ -66,18 +98,24 @@ export function IllnessDiagnoser() {
     setError(null); 
     setGeneratedImageUrl(null);
 
-
     startTransitionImage(async () => {
       try {
-        const input: GenerateIllnessImageInput = { illnessName: diagnosisResult.potentialIllnessName };
-        const imageResult = await generateIllnessImage(input);
+        let imageResult: GenerateIllnessImageOutput;
+        const illnessName = diagnosisResult.potentialIllnessName!;
+        if (mode === 'STI') {
+            const input: GenerateSTIImageInput = { stiName: illnessName };
+            imageResult = await generateSTIImage(input);
+        } else {
+            const input: GenerateGeneralImageInput = { illnessName: illnessName };
+            imageResult = await generateIllnessImage(input);
+        }
         setGeneratedImageUrl(imageResult.imageUrl);
         toast({
             title: "Imagen Generada",
-            description: `Se ha generado una imagen para ${diagnosisResult.potentialIllnessName}.`,
+            description: `Se ha generado una imagen para ${illnessName}.`,
         });
       } catch (e) {
-        console.error("Error generando imagen desde diagnóstico:", e);
+        console.error(`Error generando imagen desde diagnóstico (${mode}):`, e);
         setError("Ocurrió un error al generar la imagen. Por favor, inténtalo de nuevo.");
         toast({
           title: "Error al Generar Imagen",
@@ -95,9 +133,11 @@ export function IllnessDiagnoser() {
   return (
     <Card className="shadow-xl rounded-lg overflow-hidden w-full">
       <CardHeader className="bg-card">
-        <CardTitle className="text-xl font-semibold">Describe tus Síntomas</CardTitle>
+        <CardTitle className="text-xl font-semibold">
+          Describe tus Síntomas {mode === 'STI' ? '(Enfoque ETS)' : '(Enfoque General)'}
+        </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Ingresa una descripción detallada de cómo te sientes. La IA intentará ofrecerte información general y educativa.
+          Ingresa una descripción detallada de cómo te sientes. La IA ofrecerá información general y educativa según el enfoque seleccionado.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6 bg-background">
@@ -105,7 +145,11 @@ export function IllnessDiagnoser() {
           <Textarea
             value={symptoms}
             onChange={(e) => setSymptoms(e.target.value)}
-            placeholder="Ej: Tengo fiebre alta, dolor de cabeza persistente y mucha fatiga desde hace tres días..."
+            placeholder={
+              mode === 'STI' 
+              ? "Ej: He notado irritación y flujo inusual en mis genitales..." 
+              : "Ej: Tengo fiebre alta, dolor de cabeza y fatiga desde hace tres días..."
+            }
             className="text-base min-h-[120px]"
             aria-label="Descripción de síntomas"
             rows={5}
@@ -120,7 +164,7 @@ export function IllnessDiagnoser() {
             ) : (
               <Sparkles className="mr-2 h-5 w-5" />
             )}
-            Obtener Pre-Diagnóstico AI
+            Obtener Pre-Diagnóstico AI {mode === 'STI' ? '(ETS)' : '(General)'}
           </Button>
         </div>
 
@@ -149,7 +193,6 @@ export function IllnessDiagnoser() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* La advertencia importante principal se muestra en la página contenedora ahora, pero mantenemos esta también por si acaso */}
               <Alert variant="destructive" className="border-destructive text-destructive-foreground bg-destructive/10">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
                 <AlertTitle className="font-bold">¡MUY IMPORTANTE!</AlertTitle>
@@ -159,7 +202,7 @@ export function IllnessDiagnoser() {
               </Alert>
               
               <div>
-                <h4 className="font-semibold text-lg mb-2 text-foreground">Resumen Basado en tus Síntomas:</h4>
+                <h4 className="font-semibold text-lg mb-2 text-foreground">Resumen Basado en tus Síntomas ({mode === 'STI' ? 'Enfoque ETS' : 'Enfoque General'}):</h4>
                 <p className="text-base text-foreground whitespace-pre-wrap leading-relaxed">
                   {diagnosisResult.diagnosisSummary}
                 </p>
@@ -168,8 +211,8 @@ export function IllnessDiagnoser() {
               {diagnosisResult.potentialIllnessName && (
                 <div className="pt-4 border-t border-border/50">
                   <p className="text-sm text-muted-foreground mb-2">
-                    La IA ha identificado "<strong className="text-accent">{diagnosisResult.potentialIllnessName}</strong>" como una posible condición relacionada con los síntomas descritos.
-                    ¿Deseas generar una imagen ilustrativa sobre esta condición?
+                    La IA ha identificado "<strong className="text-accent">{diagnosisResult.potentialIllnessName}</strong>" como una posible condición relacionada.
+                    ¿Deseas generar una imagen ilustrativa?
                   </p>
                   <Button 
                     onClick={handleGenerateImageFromDiagnosis} 
@@ -193,7 +236,6 @@ export function IllnessDiagnoser() {
           </Card>
         )}
 
-        {/* Sección para mostrar la imagen generada a partir del diagnóstico */}
         {generatedImageUrl && !isLoadingImage && diagnosisResult?.potentialIllnessName && (
           <Card className="overflow-hidden shadow-lg border-accent/30 border-l-4 mt-6">
             <CardHeader>
@@ -210,7 +252,7 @@ export function IllnessDiagnoser() {
                   objectFit="contain"
                   className="transition-opacity duration-500 opacity-0"
                   onLoadingComplete={(image) => image.classList.remove('opacity-0')}
-                  data-ai-hint="medical illustration abstract"
+                   data-ai-hint={`medical illustration ${mode === 'STI' ? 'sti health' : 'abstract'}`}
                   unoptimized={isDataUrl} 
                 />
               </div>
@@ -236,14 +278,12 @@ export function IllnessDiagnoser() {
           </Card>
         )}
 
-        {/* Muestra el loader de imagen si isLoadingImage es true y no hay un potentialIllnessName (lo que significa que no viene del flujo de diagnóstico) */}
         {isLoadingImage && !diagnosisResult?.potentialIllnessName && (
           <div className="flex flex-col items-center justify-center p-8 bg-secondary/30 rounded-md border border-border shadow-sm mt-6">
             <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
             <p className="text-lg text-muted-foreground font-medium">Generando imagen ilustrativa...</p>
           </div>
         )}
-
       </CardContent>
     </Card>
   );
