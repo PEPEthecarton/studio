@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ETS BY PEPE\'WORDCOMPANY',
-  description: 'Información educativa y generación de imágenes sobre ETS.',
+  title: 'Asistente de Pre-Diagnóstico Médico AI',
+  description: 'Herramienta educativa para entender posibles condiciones de salud basada en síntomas. Siempre consulta a un médico.',
 };
 
 export default function RootLayout({
