@@ -55,14 +55,15 @@ export function IllnessDiagnoser() {
     });
   };
 
-  const handleGenerateImage = () => {
+  const handleGenerateImageFromDiagnosis = () => {
     if (!diagnosisResult?.potentialIllnessName) {
-      setError("No hay un nombre de enfermedad potencial para generar la imagen.");
+      // Este caso no debería ocurrir si el botón solo se muestra cuando hay un potentialIllnessName
+      setError("No hay un nombre de enfermedad potencial para generar la imagen desde el diagnóstico.");
       return;
     }
 
     setIsLoadingImage(true);
-    setError(null); // Clear previous errors
+    setError(null); 
     setGeneratedImageUrl(null);
 
 
@@ -76,7 +77,7 @@ export function IllnessDiagnoser() {
             description: `Se ha generado una imagen para ${diagnosisResult.potentialIllnessName}.`,
         });
       } catch (e) {
-        console.error("Error generando imagen:", e);
+        console.error("Error generando imagen desde diagnóstico:", e);
         setError("Ocurrió un error al generar la imagen. Por favor, inténtalo de nuevo.");
         toast({
           title: "Error al Generar Imagen",
@@ -96,7 +97,7 @@ export function IllnessDiagnoser() {
       <CardHeader className="bg-card">
         <CardTitle className="text-xl font-semibold">Describe tus Síntomas</CardTitle>
         <CardDescription className="text-muted-foreground">
-          Ingresa una descripción detallada de cómo te sientes. La IA intentará ofrecerte información general.
+          Ingresa una descripción detallada de cómo te sientes. La IA intentará ofrecerte información general y educativa.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6 bg-background">
@@ -144,10 +145,11 @@ export function IllnessDiagnoser() {
             <CardHeader>
                <div className="flex items-center gap-3">
                 <MessageSquareWarning className="h-7 w-7 text-destructive flex-shrink-0" />
-                <CardTitle className="text-xl font-semibold text-destructive">Análisis Preliminar (No es un Diagnóstico Médico)</CardTitle>
+                <CardTitle className="text-xl font-semibold text-destructive">Análisis Informativo (No es un Diagnóstico Médico)</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* La advertencia importante principal se muestra en la página contenedora ahora, pero mantenemos esta también por si acaso */}
               <Alert variant="destructive" className="border-destructive text-destructive-foreground bg-destructive/10">
                 <AlertTriangle className="h-5 w-5 text-destructive" />
                 <AlertTitle className="font-bold">¡MUY IMPORTANTE!</AlertTitle>
@@ -155,8 +157,9 @@ export function IllnessDiagnoser() {
                   {diagnosisResult.importantWarning}
                 </AlertDescription>
               </Alert>
+              
               <div>
-                <h4 className="font-semibold text-lg mb-2 text-foreground">Resumen basado en tus síntomas:</h4>
+                <h4 className="font-semibold text-lg mb-2 text-foreground">Resumen Basado en tus Síntomas:</h4>
                 <p className="text-base text-foreground whitespace-pre-wrap leading-relaxed">
                   {diagnosisResult.diagnosisSummary}
                 </p>
@@ -166,9 +169,10 @@ export function IllnessDiagnoser() {
                 <div className="pt-4 border-t border-border/50">
                   <p className="text-sm text-muted-foreground mb-2">
                     La IA ha identificado "<strong className="text-accent">{diagnosisResult.potentialIllnessName}</strong>" como una posible condición relacionada con los síntomas descritos.
+                    ¿Deseas generar una imagen ilustrativa sobre esta condición?
                   </p>
                   <Button 
-                    onClick={handleGenerateImage} 
+                    onClick={handleGenerateImageFromDiagnosis} 
                     disabled={isLoadingImage || isPendingImage}
                     variant="outline"
                     className="w-full sm:w-auto text-base py-2.5 px-6"
@@ -189,14 +193,8 @@ export function IllnessDiagnoser() {
           </Card>
         )}
 
-        {isLoadingImage && (
-          <div className="flex flex-col items-center justify-center p-8 bg-secondary/30 rounded-md border border-border shadow-sm mt-6">
-            <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
-            <p className="text-lg text-muted-foreground font-medium">Generando imagen ilustrativa...</p>
-          </div>
-        )}
-
-        {generatedImageUrl && !isLoadingImage && (
+        {/* Sección para mostrar la imagen generada a partir del diagnóstico */}
+        {generatedImageUrl && !isLoadingImage && diagnosisResult?.potentialIllnessName && (
           <Card className="overflow-hidden shadow-lg border-accent/30 border-l-4 mt-6">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">
@@ -237,6 +235,15 @@ export function IllnessDiagnoser() {
             </CardFooter>
           </Card>
         )}
+
+        {/* Muestra el loader de imagen si isLoadingImage es true y no hay un potentialIllnessName (lo que significa que no viene del flujo de diagnóstico) */}
+        {isLoadingImage && !diagnosisResult?.potentialIllnessName && (
+          <div className="flex flex-col items-center justify-center p-8 bg-secondary/30 rounded-md border border-border shadow-sm mt-6">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
+            <p className="text-lg text-muted-foreground font-medium">Generando imagen ilustrativa...</p>
+          </div>
+        )}
+
       </CardContent>
     </Card>
   );

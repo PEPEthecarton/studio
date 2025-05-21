@@ -20,7 +20,7 @@ const DiagnoseIllnessOutputSchema = z.object({
   diagnosisSummary: z
     .string()
     .describe(
-      'Un resumen de posibles condiciones médicas basadas en los síntomas, escrito en español. Debe incluir una advertencia muy clara de que esto no es un diagnóstico médico y que el usuario DEBE consultar a un médico.'
+      'Un análisis detallado en español. Primero, si se identifica una condición probable, describe sus síntomas comunes. Luego, menciona otras condiciones con síntomas similares. Después, proporciona un resumen general basado en los síntomas del usuario. Incluye recomendaciones para buscar información adicional en fuentes médicas confiables (ej. sitios de organizaciones de salud). Finalmente, DEBE CONCLUIR con una advertencia clara de que esto no es un diagnóstico médico y que el usuario DEBE consultar a un médico.'
     ),
   potentialIllnessName: z
     .string()
@@ -41,12 +41,20 @@ const prompt = ai.definePrompt({
   name: 'diagnoseIllnessPrompt',
   input: {schema: DiagnoseIllnessInputSchema},
   output: {schema: DiagnoseIllnessOutputSchema},
-  prompt: `Eres un asistente virtual de pre-diagnóstico médico. Un usuario describirá sus síntomas.
-Analiza los síntomas proporcionados y ofrece un resumen de posibles condiciones o áreas generales de preocupación.
-Es CRUCIAL que enfatices MUY CLARAMENTE y en múltiples ocasiones que esto NO es un diagnóstico médico real, que NO REEMPLAZA la consulta con un profesional de la salud, y que el usuario DEBE CONSULTAR A UN MÉDICO para obtener un diagnóstico preciso y cualquier tratamiento.
-Si, y solo si, los síntomas apuntan claramente a una condición potencial común y reconocible, puedes mencionar su nombre en español en el campo 'potentialIllnessName'. Si no estás seguro o los síntomas son vagos, deja 'potentialIllnessName' vacío.
-Tu respuesta principal debe estar en 'diagnosisSummary'.
-El campo 'importantWarning' debe contener el siguiente texto EXACTO: "IMPORTANTE: Este análisis es generado por una IA y NO SUSTITUYE una consulta médica profesional. Los síntomas pueden ser indicativos de diversas condiciones. DEBES CONSULTAR A UN MÉDICO para obtener un diagnóstico preciso y un plan de tratamiento adecuado."
+  prompt: `Eres un asistente virtual de pre-diagnóstico médico con un enfoque informativo y educativo. Un usuario describirá sus síntomas.
+Tu objetivo es proporcionar una respuesta estructurada y útil en español. Sigue estos pasos en tu respuesta para el campo 'diagnosisSummary':
+
+1.  **Análisis de Condición Potencial:** Si basándote en los síntomas, identificas una condición médica común y reconocible como la más probable (asígnala a 'potentialIllnessName'), comienza describiendo brevemente los síntomas típicos de *esa* condición. Si no puedes identificar una condición específica con razonable certeza, omite este paso y deja 'potentialIllnessName' vacío.
+
+2.  **Condiciones Similares:** Menciona brevemente 1-2 otras condiciones que podrían presentar síntomas parecidos a los descritos por el usuario, para ampliar la perspectiva.
+
+3.  **Resumen General del Pre-Diagnóstico:** Proporciona un resumen general basado en el análisis de los síntomas específicos que el usuario ha ingresado.
+
+4.  **Búsqueda de Información Confiable:** Si has identificado una 'potentialIllnessName', sugiere al usuario buscar más información sobre esa condición (y sobre salud sexual en general si es relevante para los síntomas) en fuentes médicas confiables y reconocidas, como sitios web de organizaciones de salud gubernamentales o internacionales (por ejemplo, la Organización Mundial de la Salud, o autoridades sanitarias de México).
+
+5.  **Advertencia Final (CRUCIAL):** El 'diagnosisSummary' DEBE CONCLUIR INVARIABLEMENTE con la siguiente frase o una muy similar y clara: "Recuerda, esta información es solo orientativa y educativa, y de ninguna manera sustituye un diagnóstico médico profesional. Es fundamental que consultes a un médico para una evaluación precisa y cualquier tratamiento necesario."
+
+El campo 'importantWarning' debe ser un texto fijo (ver la definición del schema, no lo generes aquí, se asignará después).
 Proporciona toda la información en español.
 
 Síntomas del usuario: {{{symptoms}}}
@@ -63,7 +71,7 @@ const diagnoseIllnessFlow = ai.defineFlow(
     const {output} = await prompt(input);
     // Ensure the fixed warning is always part of the output, overriding any LLM generation for it.
     return {
-        diagnosisSummary: output?.diagnosisSummary || "No se pudo procesar la solicitud. Por favor, intente de nuevo.",
+        diagnosisSummary: output?.diagnosisSummary || "No se pudo procesar la solicitud. Por favor, intente de nuevo. Recuerde consultar a un médico.",
         potentialIllnessName: output?.potentialIllnessName || "",
         importantWarning: "IMPORTANTE: Este análisis es generado por una IA y NO SUSTITUYE una consulta médica profesional. Los síntomas pueden ser indicativos de diversas condiciones. DEBES CONSULTAR A UN MÉDICO para obtener un diagnóstico preciso y un plan de tratamiento adecuado."
     };

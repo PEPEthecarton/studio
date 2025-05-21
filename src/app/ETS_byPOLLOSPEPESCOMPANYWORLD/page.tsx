@@ -1,10 +1,151 @@
 
 "use client";
 
-import React from "react";
+import React, { useState, useTransition } from "react";
+import NextImage from "next/image";
 import { IllnessDiagnoser } from "@/components/illness-diagnoser";
-import { HeartPulse, ShieldAlert } from "lucide-react";
+import { HeartPulse, ShieldAlert, Image as ImageIconLucide, Download, Lightbulb, Info, MapPin } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { generateIllnessImage, type GenerateIllnessImageInput, type GenerateIllnessImageOutput } from "@/ai/flows/generate-illness-image";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+
+function StandaloneImageGenerator() {
+  const [illnessName, setIllnessName] = useState("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPendingImage, startTransitionImage] = useTransition();
+  const { toast } = useToast();
+
+  const handleGenerate = () => {
+    if (!illnessName.trim()) {
+      setError("Por favor, ingresa el nombre de una enfermedad o condición.");
+      setGeneratedImageUrl(null);
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    setGeneratedImageUrl(null);
+
+    startTransitionImage(async () => {
+      try {
+        const input: GenerateIllnessImageInput = { illnessName: illnessName.trim() };
+        const result = await generateIllnessImage(input);
+        setGeneratedImageUrl(result.imageUrl);
+        toast({
+            title: "Imagen Generada",
+            description: `Se ha generado una imagen para ${illnessName}.`,
+        });
+      } catch (e) {
+        console.error("Error generando imagen independiente:", e);
+        setError("Ocurrió un error al generar la imagen. Por favor, inténtalo de nuevo.");
+        toast({
+          title: "Error al Generar Imagen",
+          description: "No se pudo generar la imagen. Intenta nuevamente.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    });
+  };
+  
+  const isDataUrl = generatedImageUrl?.startsWith('data:');
+
+  return (
+    <Card className="shadow-xl rounded-lg overflow-hidden w-full">
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <ImageIconLucide size={32} className="text-accent flex-shrink-0" />
+          <CardTitle className="text-2xl md:text-3xl font-semibold">Generador de Imágenes Médicas</CardTitle>
+        </div>
+        <CardDescription>
+          Escribe el nombre de una enfermedad o condición médica para generar una imagen ilustrativa. Útil para fines educativos.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-6 space-y-6">
+        <div className="space-y-3">
+          <Input
+            type="text"
+            value={illnessName}
+            onChange={(e) => setIllnessName(e.target.value)}
+            placeholder="Ej: Gripe, Varicela, Migraña..."
+            className="text-base"
+            aria-label="Nombre de la enfermedad para generar imagen"
+          />
+          <Button onClick={handleGenerate} disabled={isLoading || isPendingImage} className="w-full sm:w-auto text-base py-2.5 px-6">
+            {(isLoading || isPendingImage) ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ImageIconLucide className="mr-2 h-5 w-5" />}
+            Generar Imagen
+          </Button>
+        </div>
+
+        {(isLoading || isPendingImage) && (
+          <div className="flex flex-col items-center justify-center p-8 bg-secondary/30 rounded-md border border-border shadow-sm">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
+            <p className="text-lg text-muted-foreground font-medium">Generando imagen...</p>
+          </div>
+        )}
+
+        {error && !isLoading && (
+          <Alert variant="destructive" className="shadow-md">
+            <AlertTriangleIcon className="h-5 w-5" />
+            <AlertTitle className="font-semibold">Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {generatedImageUrl && !isLoading && (
+          <Card className="overflow-hidden shadow-lg border-accent/30 border-l-4 mt-4">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">
+                Imagen ilustrativa para: <span className="text-accent">{illnessName}</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="aspect-video relative w-full bg-muted rounded-md overflow-hidden border border-border">
+                <NextImage
+                  src={generatedImageUrl}
+                  alt={`Imagen ilustrativa sobre ${illnessName}`}
+                  layout="fill"
+                  objectFit="contain"
+                  className="transition-opacity duration-500 opacity-0"
+                  onLoadingComplete={(image) => image.classList.remove('opacity-0')}
+                  data-ai-hint="medical illustration abstract"
+                  unoptimized={isDataUrl}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = generatedImageUrl;
+                    const safeIllnessName = illnessName?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'ilustracion_medica';
+                    link.download = `imagen_${safeIllnessName}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="w-full sm:w-auto text-base py-2.5 px-6"
+                >
+                  <Download className="mr-2 h-5 w-5" />
+                  Descargar Imagen
+                </Button>
+            </CardFooter>
+          </Card>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 
 export default function EtsByPollosPepesCompanyWorldPage() {
   return (
@@ -26,20 +167,53 @@ export default function EtsByPollosPepesCompanyWorldPage() {
               Analiza tus Síntomas (Pre-Diagnóstico)
             </h2>
           </div>
-          <div className="bg-destructive/10 border-l-4 border-destructive text-destructive-foreground p-4 rounded-md mb-6 shadow">
-            <h3 className="font-bold text-lg mb-2 flex items-center">
-              <AlertTriangleIcon className="h-6 w-6 mr-2" /> ¡Atención Importante!
-            </h3>
-            <p className="text-sm">
-              Esta herramienta es solo para fines informativos y educativos. <strong>NO sustituye el consejo, diagnóstico o tratamiento médico profesional.</strong> Si tienes alguna preocupación sobre tu salud, <strong>DEBES CONSULTAR A UN MÉDICO INMEDIATAMENTE.</strong> No demores la búsqueda de consejo médico ni ignores el consejo médico profesional debido a algo que hayas leído aquí.
-            </p>
-          </div>
+          <Alert variant="destructive" className="bg-destructive/10 border-l-4 border-destructive text-destructive-foreground p-4 rounded-md mb-6 shadow">
+            <AlertTriangleIcon className="h-6 w-6 mr-2 flex-shrink-0" />
+            <div>
+              <AlertTitle className="font-bold text-lg mb-1">¡Atención Importante!</AlertTitle>
+              <AlertDescription className="text-sm">
+                Esta herramienta es solo para fines informativos y educativos. <strong>NO sustituye el consejo, diagnóstico o tratamiento médico profesional.</strong> Si tienes alguna preocupación sobre tu salud, <strong>DEBES CONSULTAR A UN MÉDICO INMEDIATAMENTE.</strong> No demores la búsqueda de consejo médico ni ignores el consejo médico profesional debido a algo que hayas leído aquí.
+              </AlertDescription>
+            </div>
+          </Alert>
           <IllnessDiagnoser />
         </section>
+
+        <section id="standalone-image-generator" aria-labelledby="standalone-image-generator-heading" className="scroll-mt-20 pt-8 border-t border-border/50">
+           <StandaloneImageGenerator />
+        </section>
+        
+        <section id="local-info-colima" aria-labelledby="local-info-colima-heading" className="scroll-mt-20 pt-8 border-t border-border/50">
+          <div className="flex items-center gap-3 mb-6">
+            <MapPin size={32} className="text-accent flex-shrink-0" />
+            <h2 id="local-info-colima-heading" className="text-2xl md:text-3xl font-semibold text-foreground">
+              Información para usuarios en Colima, México
+            </h2>
+          </div>
+          <Alert variant="default" className="bg-secondary/50 border-l-4 border-accent p-4 rounded-md shadow">
+            <Info className="h-6 w-6 mr-2 flex-shrink-0 text-accent" />
+             <div>
+              <AlertTitle className="font-bold text-lg mb-1 text-accent">Orientación Médica Local</AlertTitle>
+              <AlertDescription className="text-sm text-secondary-foreground">
+                Si te encuentras en Colima, Colima, México y necesitas asistencia médica o información sobre salud sexual, te recomendamos:
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>Buscar clínicas de salud sexual o servicios médicos públicos en tu localidad.</li>
+                  <li>Consultar directorios oficiales de profesionales de la salud proporcionados por autoridades sanitarias estatales o municipales.</li>
+                  <li>Acercarte a centros de salud comunitarios que puedan ofrecer orientación.</li>
+                </ul>
+                <p className="mt-3">
+                  Recuerda que la atención médica profesional es esencial para un diagnóstico y tratamiento adecuados. No dudes en buscar ayuda.
+                </p>
+              </AlertDescription>
+            </div>
+          </Alert>
+        </section>
+
+
       </main>
 
       <footer className="py-8 mt-12 text-center text-muted-foreground border-t border-border/50">
-        <p>&copy; {new Date().getFullYear()} Asistente de Pre-Diagnóstico Médico AI. Contenido educativo. Consulta siempre a un profesional.</p>
+        <p>&copy; {new Date().getFullYear()} Asistente de Pre-Diagnóstico Médico AI por POLLO'S PEPES COMPANY WORLD. Contenido educativo. Consulta siempre a un profesional.</p>
       </footer>
       <Toaster />
     </div>
