@@ -16,9 +16,12 @@ export default function HomePage() {
       const currentOrigin = window.location.origin;
       const toolPageUrl = `${currentOrigin}/ETS_byPOLLOSPEPESCOMPANYWORLD`;
       setPageUrl(toolPageUrl);
-      setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(toolPageUrl)}`);
+      
+      // Add a cache-busting parameter to the QR code URL
+      const timestamp = Date.now();
+      setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(toolPageUrl)}&cachebust=${timestamp}`);
     }
-  }, []);
+  }, []); // Empty dependency array ensures this runs once on mount
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background via-secondary to-background p-4 sm:p-6 text-center">
@@ -42,15 +45,17 @@ export default function HomePage() {
               Escanea este código QR con tu móvil para acceder directamente a la herramienta:
             </p>
             <div className="flex justify-center mb-2">
-              <img 
-                src={qrCodeUrl} 
-                alt="Código QR para la herramienta ETS_byPOLLOSPEPESCOMPANYWORLD" 
-                width={160} 
-                height={160} 
-                className="rounded-md border-4 border-primary shadow-lg sm:w-[200px] sm:h-[200px]"
-              />
+              {qrCodeUrl && (
+                <img 
+                  src={qrCodeUrl} 
+                  alt="Código QR para la herramienta ETS_byPOLLOSPEPESCOMPANYWORLD" 
+                  width={160} 
+                  height={160} 
+                  className="rounded-md border-4 border-primary shadow-lg w-[160px] h-[160px] sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px]"
+                />
+              )}
             </div>
-            <p className="text-xs text-muted-foreground break-words"> {/* Changed break-all to break-words for better wrapping */}
+            <p className="text-xs text-muted-foreground break-words">
               O comparte este enlace: <a href={pageUrl} className="text-primary hover:underline font-semibold">ETS_POLLOSPEPESWORLDCOMPAMPANY</a>
             </p>
           </div>
@@ -59,7 +64,7 @@ export default function HomePage() {
         <Link href="/ETS_byPOLLOSPEPESCOMPANYWORLD" passHref legacyBehavior>
           <Button 
             size="lg" 
-            className="w-full sm:w-auto text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 px-6 sm:px-8 py-3 sm:py-2.5" // Adjusted padding and ensured text size adapts
+            className="w-full sm:w-auto text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 px-6 sm:px-8 py-3 sm:py-2.5"
           >
             <Zap className="mr-2 h-5 w-5" />
             Ir a la Herramienta de Pre-Diagnóstico
