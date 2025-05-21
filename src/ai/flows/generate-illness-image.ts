@@ -25,11 +25,15 @@ export async function generateIllnessImage(input: GenerateIllnessImageInput): Pr
   return generateIllnessImageFlow(input);
 }
 
-const imagePromptText = (illnessName: string) => `Generate an **abstract, conceptual, or symbolic educational image** related to the general medical condition: "${illnessName}". The image should be suitable for general health education, **strictly avoiding graphic, disturbing, or explicit clinical content**. Focus on creating an artistic or informative illustration that represents an idea or concept related to the illness, rather than a literal depiction. For example, it could be a metaphor, a pattern, or a stylized representation.`;
+const imagePromptText = (illnessName: string) => `Generate an **educational and stylized illustration** that conceptually represents the common experience or key symptoms of the general medical condition: "${illnessName}".
+The image should be suitable for health education, **strictly avoiding graphic, disturbing, or explicit clinical content**.
+Focus on an artistic, informative, and recognizable visual metaphor or stylized representation of the condition or its effects, rather than a purely abstract pattern.
+For example, for 'flu', it could be a stylized person feeling unwell, or symbols representing fever and cough.
+The image must be appropriate for a general audience and not overly abstract to the point of being uninterpretable.`;
 
 const generateIllnessImageFlow = ai.defineFlow(
   {
-    name: 'generateGeneralIllnessImageFlow', // Renamed for clarity
+    name: 'generateGeneralIllnessImageFlow',
     inputSchema: GenerateIllnessImageInputSchema,
     outputSchema: GenerateIllnessImageOutputSchema,
   },
@@ -54,4 +58,3 @@ const generateIllnessImageFlow = ai.defineFlow(
     return {imageUrl: media.url};
   }
 );
-

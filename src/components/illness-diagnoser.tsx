@@ -111,14 +111,14 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
         }
         setGeneratedImageUrl(imageResult.imageUrl);
         toast({
-            title: "Imagen Generada",
-            description: `Se ha generado una imagen para ${illnessName}.`,
+            title: "Imagen Conceptual Generada",
+            description: `Se ha generado una imagen conceptual para ${illnessName}.`,
         });
       } catch (e) {
         console.error(`Error generando imagen desde diagnóstico (${mode}):`, e);
-        setError("Ocurrió un error al generar la imagen. Por favor, inténtalo de nuevo.");
+        setError("Ocurrió un error al generar la imagen conceptual. Por favor, inténtalo de nuevo.");
         toast({
-          title: "Error al Generar Imagen",
+          title: "Error al Generar Imagen Conceptual",
           description: "No se pudo generar la imagen. Intenta nuevamente.",
           variant: "destructive",
         });
@@ -212,7 +212,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
                 <div className="pt-4 border-t border-border/50">
                   <p className="text-sm text-muted-foreground mb-2">
                     La IA ha identificado "<strong className="text-accent">{diagnosisResult.potentialIllnessName}</strong>" como una posible condición relacionada.
-                    ¿Deseas generar una imagen ilustrativa?
+                    ¿Deseas generar una imagen conceptual ilustrativa?
                   </p>
                   <Button 
                     onClick={handleGenerateImageFromDiagnosis} 
@@ -228,7 +228,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
                     Generar Imagen de "{diagnosisResult.potentialIllnessName}"
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    La imagen generada es solo para fines ilustrativos y educativos. <strong>No confirma ningún diagnóstico.</strong>
+                    La imagen generada es solo para fines ilustrativos y educativos. <strong>No confirma ningún diagnóstico ni es una foto clínica.</strong>
                   </p>
                 </div>
               )}
@@ -240,19 +240,20 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
           <Card className="overflow-hidden shadow-lg border-accent/30 border-l-4 mt-6">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">
-                Imagen ilustrativa para: <span className="text-accent">{diagnosisResult?.potentialIllnessName}</span>
+                Imagen conceptual para: <span className="text-accent">{diagnosisResult?.potentialIllnessName}</span>
               </CardTitle>
+              <CardDescription>Esta imagen es una representación conceptual y educativa, <strong>no un diagnóstico visual ni una foto clínica.</strong></CardDescription>
             </CardHeader>
             <CardContent className="p-4">
               <div className="aspect-video relative w-full bg-muted rounded-md overflow-hidden border border-border">
                 <NextImage
                   src={generatedImageUrl}
-                  alt={`Imagen ilustrativa sobre ${diagnosisResult?.potentialIllnessName}`}
+                  alt={`Imagen conceptual sobre ${diagnosisResult?.potentialIllnessName}`}
                   layout="fill"
                   objectFit="contain"
                   className="transition-opacity duration-500 opacity-0"
                   onLoadingComplete={(image) => image.classList.remove('opacity-0')}
-                   data-ai-hint={`medical illustration ${mode === 'STI' ? 'sti health' : 'abstract'}`}
+                  data-ai-hint={mode === 'STI' ? `sti concept illustration ${diagnosisResult?.potentialIllnessName}` : `illness concept illustration ${diagnosisResult?.potentialIllnessName}`}
                   unoptimized={isDataUrl} 
                 />
               </div>
@@ -263,8 +264,8 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
                   onClick={() => {
                     const link = document.createElement('a');
                     link.href = generatedImageUrl;
-                    const safeIllnessName = diagnosisResult?.potentialIllnessName?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'ilustracion_medica';
-                    link.download = `imagen_${safeIllnessName}.png`;
+                    const safeIllnessName = diagnosisResult?.potentialIllnessName?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'ilustracion_medica_conceptual';
+                    link.download = `imagen_conceptual_${safeIllnessName}.png`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -281,7 +282,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
         {isLoadingImage && !diagnosisResult?.potentialIllnessName && (
           <div className="flex flex-col items-center justify-center p-8 bg-secondary/30 rounded-md border border-border shadow-sm mt-6">
             <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
-            <p className="text-lg text-muted-foreground font-medium">Generando imagen ilustrativa...</p>
+            <p className="text-lg text-muted-foreground font-medium">Generando imagen conceptual...</p>
           </div>
         )}
       </CardContent>

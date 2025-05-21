@@ -25,7 +25,10 @@ export async function generateSTIImage(input: GenerateSTIImageInput): Promise<Ge
   return generateSTIImageFlow(input);
 }
 
-const imagePromptText = (stiName: string) => `Generate an **abstract, conceptual, or symbolic educational image** related to the Sexually Transmitted Infection (STI): "${stiName}". The image should be suitable for sexual health education, **strictly avoiding graphic, explicit, sexually suggestive, or disturbing content**. Focus on creating an artistic or informative illustration that represents an idea or concept related to the STI (e.g., stylized pathogen, abstract representation of transmission, symbols of health, prevention, or testing). Do NOT show human anatomy in a clinical or detailed way. The image must be appropriate for a general audience.`;
+const imagePromptText = (stiName: string) => `Generate an **educational and highly stylized illustration** that represents a key concept associated with the Sexually Transmitted Infection (STI): "${stiName}".
+The image must be suitable for sexual health education, **strictly avoiding any graphic, explicit, sexually suggestive, or disturbing clinical content, and avoiding detailed anatomical representations**.
+Focus on an artistic, symbolic, or conceptual illustration. This could relate to an abstract representation of common symptoms (stylized and non-graphic), the importance of testing, prevention methods (e.g., symbols of protection), or the impact on health.
+Do NOT show human anatomy in a clinical or detailed way. The image must be appropriate for a general audience and avoid showing the pathogen (virus/bacteria) itself unless specifically asked for a microscopic view. The aim is to be informative and discreet.`;
 
 const generateSTIImageFlow = ai.defineFlow(
   {
@@ -40,7 +43,7 @@ const generateSTIImageFlow = ai.defineFlow(
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
         safetySettings: [ 
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' }, // Stricter for STI images to avoid explicit content
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_LOW_AND_ABOVE' }, // Stricter for STI images
             { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
@@ -54,4 +57,3 @@ const generateSTIImageFlow = ai.defineFlow(
     return {imageUrl: media.url};
   }
 );
-

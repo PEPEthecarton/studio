@@ -51,7 +51,7 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
         setGeneratedImageUrl(result.imageUrl);
         toast({
             title: "Imagen Generada",
-            description: `Se ha generado una imagen para ${illnessName}. La imagen es una representación abstracta/educativa y no un diagnóstico.`,
+            description: `Se ha generado una imagen para ${illnessName}. La imagen es una representación conceptual/educativa y no un diagnóstico.`,
         });
       } catch (e) {
         console.error(`Error generando imagen independiente (${mode}):`, e);
@@ -75,12 +75,12 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
         <div className="flex items-center gap-3">
           <ImageIconLucide size={32} className="text-accent flex-shrink-0" />
           <CardTitle className="text-2xl md:text-3xl font-semibold">
-            Generador de Imágenes {mode === 'STI' ? 'de ETS (Abstractas)' : 'Médicas (Abstractas)'}
+            Generador de Imágenes {mode === 'STI' ? 'de ETS (Conceptuales)' : 'Médicas (Conceptuales)'}
           </CardTitle>
         </div>
         <CardDescription>
-          Escribe el nombre de {mode === 'STI' ? 'una ETS' : 'una enfermedad o condición médica'} para generar una imagen ilustrativa abstracta.
-          Las imágenes son conceptuales y educativas, no para diagnóstico.
+          Escribe el nombre de {mode === 'STI' ? 'una ETS' : 'una enfermedad o condición médica'} para generar una imagen ilustrativa, conceptual y educativa.
+          Las imágenes generadas <strong>no son fotografías clínicas ni diagnósticos visuales.</strong> Son representaciones artísticas para fines educativos.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
@@ -95,7 +95,7 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
           />
           <Button onClick={handleGenerate} disabled={isLoading || isPendingImage} className="w-full sm:w-auto text-base py-2.5 px-6">
             {(isLoading || isPendingImage) ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ImageIconLucide className="mr-2 h-5 w-5" />}
-            Generar Imagen {mode === 'STI' ? 'de ETS' : 'General'}
+            Generar Imagen {mode === 'STI' ? 'Conceptual de ETS' : 'Conceptual General'}
           </Button>
         </div>
 
@@ -118,20 +118,20 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
           <Card className="overflow-hidden shadow-lg border-accent/30 border-l-4 mt-4">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">
-                Imagen ilustrativa para: <span className="text-accent">{illnessName}</span>
+                Imagen conceptual para: <span className="text-accent">{illnessName}</span>
               </CardTitle>
-               <CardDescription>Esta imagen es una representación conceptual y educativa, no un diagnóstico.</CardDescription>
+               <CardDescription>Esta imagen es una representación conceptual y educativa, <strong>no un diagnóstico visual ni una foto clínica.</strong></CardDescription>
             </CardHeader>
             <CardContent className="p-4">
               <div className="aspect-video relative w-full bg-muted rounded-md overflow-hidden border border-border">
                 <NextImage
                   src={generatedImageUrl}
-                  alt={`Imagen ilustrativa abstracta sobre ${illnessName}`}
+                  alt={`Imagen conceptual sobre ${illnessName}`}
                   layout="fill"
                   objectFit="contain"
                   className="transition-opacity duration-500 opacity-0"
                   onLoadingComplete={(image) => image.classList.remove('opacity-0')}
-                  data-ai-hint={`medical illustration ${mode === 'STI' ? 'sti health abstract' : 'abstract concept'}`}
+                  data-ai-hint={mode === 'STI' ? `sti illustration abstract ${illnessName}` : `medical illustration abstract ${illnessName}`}
                   unoptimized={isDataUrl}
                 />
               </div>
@@ -143,7 +143,7 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
                     const link = document.createElement('a');
                     link.href = generatedImageUrl;
                     const safeIllnessName = illnessName?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'ilustracion_medica';
-                    link.download = `imagen_${safeIllnessName}.png`;
+                    link.download = `imagen_conceptual_${safeIllnessName}.png`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
