@@ -19,20 +19,28 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Adapt input key if necessary, GenerateSTIImageInput expects `stiName`
-    const input: GenerateSTIImageInput = { stiName: body.illnessName || body.stiName }; 
+    const input: GenerateSTIImageInput = { stiName: body.stiName || body.illnessName }; // Accepts stiName or illnessName from body
     const result: GenerateSTIImageOutput = await generateSTIImage(input);
     
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('API Generate STI Image Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+    let errorMessage = 'An unexpected error occurred';
+    let status = 500;
+
+    if (error.message && (error.message.includes('401') || (error.status && error.status === 401))) {
+        errorMessage = 'Authorization failed when trying to contact the AI service for STI image generation. This is likely due to a missing or invalid API key for Google AI. Please check your .env file or environment configuration in your hosting provider.';
+        status = 401;
+    } else if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    
     return new Response(JSON.stringify({ error: 'Failed to generate STI image', details: errorMessage }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
+        status: status,
+        headers: { 'Content-Type': 'application/json' },
     });
   }
 }

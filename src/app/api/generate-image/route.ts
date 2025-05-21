@@ -26,12 +26,21 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('API Generate Image (General) Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+    let errorMessage = 'An unexpected error occurred';
+    let status = 500;
+
+    if (error.message && (error.message.includes('401') || (error.status && error.status === 401))) {
+        errorMessage = 'Authorization failed when trying to contact the AI service for image generation. This is likely due to a missing or invalid API key for Google AI. Please check your .env file or environment configuration in your hosting provider.';
+        status = 401;
+    } else if (error instanceof Error) {
+        errorMessage = error.message;
+    }
+    
     return new Response(JSON.stringify({ error: 'Failed to generate general image', details: errorMessage }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
+        status: status,
+        headers: { 'Content-Type': 'application/json' },
     });
   }
 }
