@@ -20,7 +20,7 @@ const DiagnoseSTIOutputSchema = z.object({
   diagnosisSummary: z
     .string()
     .describe(
-      'Un análisis detallado en español enfocado en ETS. Si se identifica una ETS probable, describe sus síntomas comunes. Menciona otras ETS con síntomas similares. Proporciona un resumen general basado en los síntomas del usuario. Incluye recomendaciones para buscar información adicional sobre salud sexual y ETS en fuentes médicas confiables. Finalmente, DEBE CONCLUIR con una advertencia clara de que esto no es un diagnóstico médico y que el usuario DEBE consultar a un médico.'
+      'Un análisis detallado en español enfocado en ETS. Si se identifica una ETS probable, describe sus síntomas comunes. Menciona otras ETS con síntomas similares. Proporciona un resumen general basado en los síntomas del usuario. Incluye una breve sección sobre enfoques generales de tratamiento o manejo de la ETS identificada (si aplica) y métodos de prevención relevantes (ej. uso de condón, pruebas regulares). Subraya que cualquier tratamiento debe ser discutido con un profesional médico. Incluye recomendaciones para buscar información adicional sobre salud sexual y ETS en fuentes médicas confiables. Finalmente, DEBE CONCLUIR con una advertencia clara de que esto no es un diagnóstico médico y que el usuario DEBE consultar a un médico.'
     ),
   potentialIllnessName: z
     .string()
@@ -55,9 +55,11 @@ Tu objetivo es proporcionar una respuesta estructurada y útil en español, cent
 
 3.  **Resumen General del Pre-Diagnóstico (Enfoque ETS):** Proporciona un resumen general basado en el análisis de los síntomas específicos que el usuario ha ingresado, manteniendo el enfoque en posibles implicaciones de salud sexual.
 
-4.  **Búsqueda de Información Confiable sobre ETS:** Si has identificado una 'potentialIllnessName', sugiere al usuario buscar más información sobre esa ETS específica y sobre salud sexual en general en fuentes médicas confiables y reconocidas (por ejemplo, sitios web de organizaciones de salud gubernamentales o internacionales especializadas en salud sexual).
+4.  **Enfoques Generales de Tratamiento y Prevención de ETS:** Si se identificó una 'potentialIllnessName', describe de forma MUY GENERAL los enfoques comunes de tratamiento o manejo para esa ETS (ej: "El tratamiento suele requerir antibióticos específicos recetados por un médico", "Algunas ETS virales no tienen cura pero se pueden controlar con medicación"). Menciona también métodos de prevención cruciales como el uso correcto y consistente de preservativos, pruebas regulares de ETS, y comunicación con la(s) pareja(s). Enfatiza que cualquier plan de tratamiento específico DEBE ser determinado y supervisado por un profesional médico.
 
-5.  **Advertencia Final (CRUCIAL):** El 'diagnosisSummary' DEBE CONCLUIR INVARIABLEMENTE con la siguiente frase o una muy similar y clara: "Recuerda, esta información es solo orientativa y educativa, y de ninguna manera sustituye un diagnóstico médico profesional. Es fundamental que consultes a un médico para una evaluación precisa y cualquier tratamiento necesario, especialmente si sospechas de una ETS."
+5.  **Búsqueda de Información Confiable sobre ETS:** Si has identificado una 'potentialIllnessName', sugiere al usuario buscar más información sobre esa ETS específica y sobre salud sexual en general en fuentes médicas confiables y reconocidas (por ejemplo, sitios web de organizaciones de salud gubernamentales o internacionales especializadas en salud sexual).
+
+6.  **Advertencia Final (CRUCIAL):** El 'diagnosisSummary' DEBE CONCLUIR INVARIABLEMENTE con la siguiente frase o una muy similar y clara: "Recuerda, esta información es solo orientativa y educativa, y de ninguna manera sustituye un diagnóstico médico profesional. Es fundamental que consultes a un médico para una evaluación precisa y cualquier tratamiento necesario, especialmente si sospechas de una ETS."
 
 Basado en los síntomas proporcionados, determina si el tema principal parece ser una Enfermedad de Transmisión Sexual (ETS) o si los síntomas apuntan claramente a una condición médica general no relacionada. Establece el campo 'detectedTopic' a 'STI' o 'General' según corresponda. Si los síntomas son ambiguos pero podrían ser de una ETS, prioriza 'STI'. Si son claramente no-ETS, indica 'General'. Si es muy ambiguo, 'Unknown'.
 
@@ -84,3 +86,4 @@ const diagnoseSTIFlow = ai.defineFlow(
     };
   }
 );
+

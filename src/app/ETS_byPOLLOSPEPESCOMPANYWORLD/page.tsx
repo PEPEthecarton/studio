@@ -4,7 +4,7 @@
 import React, { useState, useTransition, useEffect } from "react";
 import NextImage from "next/image";
 import { IllnessDiagnoser } from "@/components/illness-diagnoser";
-import { HeartPulse, ShieldAlert, Image as ImageIconLucide, Download, Lightbulb, Info, MapPin, Microscope, Stethoscope } from "lucide-react";
+import { HeartPulse, ShieldAlert, Image as ImageIconLucide, Download, Lightbulb, Info, MapPin, Microscope, Stethoscope, AlertTriangle as AlertTriangleIcon } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateIllnessImage, type GenerateIllnessImageInput } from "@/ai/flows/generate-illness-image"; // General
 import { generateSTIImage, type GenerateSTIImageInput as GenerateSTIImageInputType } from "@/ai/flows/generate-sti-image"; // STI
-import type { GenerateIllnessImageOutput } from "@/ai/flows/generate-illness-image"; // Output type is same for both for now
+import type { GenerateIllnessImageOutput } from "@/ai/flows/generate-illness-image"; 
 
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -51,7 +51,7 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
         setGeneratedImageUrl(result.imageUrl);
         toast({
             title: "Imagen Generada",
-            description: `Se ha generado una imagen para ${illnessName}.`,
+            description: `Se ha generado una imagen para ${illnessName}. La imagen es una representación abstracta/educativa y no un diagnóstico.`,
         });
       } catch (e) {
         console.error(`Error generando imagen independiente (${mode}):`, e);
@@ -75,11 +75,12 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
         <div className="flex items-center gap-3">
           <ImageIconLucide size={32} className="text-accent flex-shrink-0" />
           <CardTitle className="text-2xl md:text-3xl font-semibold">
-            Generador de Imágenes {mode === 'STI' ? 'de ETS' : 'Médicas (General)'}
+            Generador de Imágenes {mode === 'STI' ? 'de ETS (Abstractas)' : 'Médicas (Abstractas)'}
           </CardTitle>
         </div>
         <CardDescription>
-          Escribe el nombre de {mode === 'STI' ? 'una ETS' : 'una enfermedad o condición médica'} para generar una imagen ilustrativa. Útil para fines educativos.
+          Escribe el nombre de {mode === 'STI' ? 'una ETS' : 'una enfermedad o condición médica'} para generar una imagen ilustrativa abstracta.
+          Las imágenes son conceptuales y educativas, no para diagnóstico.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-6">
@@ -94,7 +95,7 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
           />
           <Button onClick={handleGenerate} disabled={isLoading || isPendingImage} className="w-full sm:w-auto text-base py-2.5 px-6">
             {(isLoading || isPendingImage) ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ImageIconLucide className="mr-2 h-5 w-5" />}
-            Generar Imagen
+            Generar Imagen {mode === 'STI' ? 'de ETS' : 'General'}
           </Button>
         </div>
 
@@ -119,17 +120,18 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
               <CardTitle className="text-lg font-semibold">
                 Imagen ilustrativa para: <span className="text-accent">{illnessName}</span>
               </CardTitle>
+               <CardDescription>Esta imagen es una representación conceptual y educativa, no un diagnóstico.</CardDescription>
             </CardHeader>
             <CardContent className="p-4">
               <div className="aspect-video relative w-full bg-muted rounded-md overflow-hidden border border-border">
                 <NextImage
                   src={generatedImageUrl}
-                  alt={`Imagen ilustrativa sobre ${illnessName}`}
+                  alt={`Imagen ilustrativa abstracta sobre ${illnessName}`}
                   layout="fill"
                   objectFit="contain"
                   className="transition-opacity duration-500 opacity-0"
                   onLoadingComplete={(image) => image.classList.remove('opacity-0')}
-                  data-ai-hint={`medical illustration ${mode === 'STI' ? 'sti health' : 'abstract'}`}
+                  data-ai-hint={`medical illustration ${mode === 'STI' ? 'sti health abstract' : 'abstract concept'}`}
                   unoptimized={isDataUrl}
                 />
               </div>
@@ -161,7 +163,7 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
 
 
 export default function EtsByPollosPepesCompanyWorldPage() {
-  const [currentMode, setCurrentMode] = useState<DiagnosisMode>('STI');
+  const [currentMode, setCurrentMode] = useState<DiagnosisMode>('STI'); // Default to STI
   const { toast } = useToast();
 
   const handleModeSwitchSuggested = (newMode: DiagnosisMode) => {
@@ -172,7 +174,7 @@ export default function EtsByPollosPepesCompanyWorldPage() {
         variant: "default",
         duration: 8000, 
       });
-      setCurrentMode(newMode); // This will also change the active tab
+      setCurrentMode(newMode); 
     }
   };
 
@@ -199,12 +201,12 @@ export default function EtsByPollosPepesCompanyWorldPage() {
         </Alert>
 
         <Tabs value={currentMode} onValueChange={(value) => setCurrentMode(value as DiagnosisMode)} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:w-1/2 mx-auto shadow-md">
-            <TabsTrigger value="STI" className="py-2.5 text-sm sm:text-base">
-              <Microscope className="mr-2 h-5 w-5 text-pink-500" /> Pre-Diagnóstico ETS
+          <TabsList className="grid w-full grid-cols-2 md:w-2/3 lg:w-1/2 mx-auto shadow-md">
+            <TabsTrigger value="STI" className="py-2.5 text-sm sm:text-base data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+              <Microscope className="mr-2 h-5 w-5" /> Pre-Diagnóstico ETS
             </TabsTrigger>
-            <TabsTrigger value="General" className="py-2.5 text-sm sm:text-base">
-              <Stethoscope className="mr-2 h-5 w-5 text-blue-500" /> Pre-Diagnóstico General
+            <TabsTrigger value="General" className="py-2.5 text-sm sm:text-base data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+              <Stethoscope className="mr-2 h-5 w-5" /> Pre-Diagnóstico General
             </TabsTrigger>
           </TabsList>
           
@@ -247,17 +249,17 @@ export default function EtsByPollosPepesCompanyWorldPage() {
           <Alert variant="default" className="bg-secondary/50 border-l-4 border-accent p-4 rounded-md shadow">
             <Info className="h-6 w-6 mr-2 flex-shrink-0 text-accent" />
              <div>
-              <AlertTitle className="font-bold text-lg mb-1 text-accent">Orientación Médica Local</AlertTitle>
+              <AlertTitle className="font-bold text-lg mb-1 text-accent">Orientación Médica Local en Colima</AlertTitle>
               <AlertDescription className="text-sm text-secondary-foreground">
-                Si te encuentras en Colima, Colima, México y necesitas asistencia médica o información sobre salud (incluyendo salud sexual), te recomendamos:
+                Si te encuentras en Colima, Colima, México y necesitas asistencia médica o información sobre salud (incluyendo salud sexual y ETS):
                 <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li>Buscar clínicas de salud, hospitales o servicios médicos públicos en tu localidad.</li>
-                  <li>Consultar directorios oficiales de profesionales de la salud proporcionados por autoridades sanitarias estatales o municipales.</li>
-                  <li>Acercarte a centros de salud comunitarios que puedan ofrecer orientación.</li>
-                  <li>En caso de emergencia, acudir al servicio de urgencias más cercano.</li>
+                  <li>Consulta los servicios ofrecidos por la <strong>Secretaría de Salud del Estado de Colima</strong>. Ellos pueden orientarte sobre clínicas públicas, hospitales y centros de salud.</li>
+                  <li>Busca <strong>directorios oficiales de servicios de salud gubernamentales</strong> en Colima. Estos suelen estar disponibles en línea o a través de oficinas gubernamentales.</li>
+                  <li>Infórmate sobre programas de salud sexual y reproductiva que puedan existir en tu municipio o estado.</li>
+                  <li>En caso de emergencia médica, acude al servicio de urgencias del hospital más cercano o llama a los números de emergencia locales.</li>
                 </ul>
                 <p className="mt-3">
-                  Recuerda que la atención médica profesional es esencial para un diagnóstico y tratamiento adecuados. No dudes en buscar ayuda.
+                  Es importante buscar atención médica profesional para un diagnóstico preciso y tratamiento adecuado. No dudes en contactar a las autoridades de salud locales para obtener información actualizada y confiable sobre dónde recibir atención.
                 </p>
               </AlertDescription>
             </div>
@@ -274,6 +276,8 @@ export default function EtsByPollosPepesCompanyWorldPage() {
   );
 }
 
+/* AlertTriangleIcon is already defined in the original file.
+   If it were missing, it would be:
 function AlertTriangleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -294,3 +298,4 @@ function AlertTriangleIcon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+*/

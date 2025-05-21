@@ -25,7 +25,7 @@ export async function generateIllnessImage(input: GenerateIllnessImageInput): Pr
   return generateIllnessImageFlow(input);
 }
 
-const imagePromptText = (illnessName: string) => `Generate an informative and abstract educational image related to the general medical condition: "${illnessName}". The image should be suitable for general health education, avoiding graphic or disturbing content. Focus on conceptual or symbolic representation if possible.`;
+const imagePromptText = (illnessName: string) => `Generate an **abstract, conceptual, or symbolic educational image** related to the general medical condition: "${illnessName}". The image should be suitable for general health education, **strictly avoiding graphic, disturbing, or explicit clinical content**. Focus on creating an artistic or informative illustration that represents an idea or concept related to the illness, rather than a literal depiction. For example, it could be a metaphor, a pattern, or a stylized representation.`;
 
 const generateIllnessImageFlow = ai.defineFlow(
   {
@@ -40,8 +40,10 @@ const generateIllnessImageFlow = ai.defineFlow(
       config: {
         responseModalities: ['TEXT', 'IMAGE'], 
         safetySettings: [ 
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }, // Stricter for general
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }, 
             { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
         ]
       },
     });
@@ -52,3 +54,4 @@ const generateIllnessImageFlow = ai.defineFlow(
     return {imageUrl: media.url};
   }
 );
+

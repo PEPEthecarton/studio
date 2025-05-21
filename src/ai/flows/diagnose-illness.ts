@@ -20,7 +20,7 @@ const DiagnoseIllnessOutputSchema = z.object({
   diagnosisSummary: z
     .string()
     .describe(
-      'Un análisis detallado en español. Primero, si se identifica una condición probable, describe sus síntomas comunes. Luego, menciona otras condiciones con síntomas similares. Después, proporciona un resumen general basado en los síntomas del usuario. Incluye recomendaciones para buscar información adicional en fuentes médicas confiables (ej. sitios de organizaciones de salud). Finalmente, DEBE CONCLUIR con una advertencia clara de que esto no es un diagnóstico médico y que el usuario DEBE consultar a un médico.'
+      'Un análisis detallado en español. Primero, si se identifica una condición probable, describe sus síntomas comunes. Luego, menciona otras condiciones con síntomas similares. Después, proporciona un resumen general basado en los síntomas del usuario. Incluye una breve sección sobre enfoques generales de tratamiento o manejo de la condición identificada (si aplica) y métodos de prevención relevantes. Subraya que cualquier tratamiento debe ser discutido con un profesional médico. Incluye recomendaciones para buscar información adicional en fuentes médicas confiables (ej. sitios de organizaciones de salud). Finalmente, DEBE CONCLUIR con una advertencia clara de que esto no es un diagnóstico médico y que el usuario DEBE consultar a un médico.'
     ),
   potentialIllnessName: z
     .string()
@@ -55,9 +55,11 @@ Tu objetivo es proporcionar una respuesta estructurada y útil en español. Sigu
 
 3.  **Resumen General del Pre-Diagnóstico:** Proporciona un resumen general basado en el análisis de los síntomas específicos que el usuario ha ingresado.
 
-4.  **Búsqueda de Información Confiable:** Si has identificado una 'potentialIllnessName', sugiere al usuario buscar más información sobre esa condición (y sobre salud en general) en fuentes médicas confiables y reconocidas, como sitios web de organizaciones de salud gubernamentales o internacionales (por ejemplo, la Organización Mundial de la Salud, o autoridades sanitarias de México).
+4.  **Enfoques Generales de Tratamiento y Prevención:** Si se identificó una 'potentialIllnessName', describe de forma MUY GENERAL los enfoques comunes de tratamiento o manejo para esa condición (ej: "El tratamiento puede incluir medicamentos antivirales recetados por un médico", "El manejo se centra en aliviar los síntomas y descanso"). NO des instrucciones específicas de tratamiento ni dosis. Menciona también métodos de prevención relevantes si aplican. Enfatiza que cualquier plan de tratamiento específico DEBE ser determinado y supervisado por un profesional médico.
 
-5.  **Advertencia Final (CRUCIAL):** El 'diagnosisSummary' DEBE CONCLUIR INVARIABLEMENTE con la siguiente frase o una muy similar y clara: "Recuerda, esta información es solo orientativa y educativa, y de ninguna manera sustituye un diagnóstico médico profesional. Es fundamental que consultes a un médico para una evaluación precisa y cualquier tratamiento necesario."
+5.  **Búsqueda de Información Confiable:** Si has identificado una 'potentialIllnessName', sugiere al usuario buscar más información sobre esa condición (y sobre salud en general) en fuentes médicas confiables y reconocidas, como sitios web de organizaciones de salud gubernamentales o internacionales (por ejemplo, la Organización Mundial de la Salud, o autoridades sanitarias de México).
+
+6.  **Advertencia Final (CRUCIAL):** El 'diagnosisSummary' DEBE CONCLUIR INVARIABLEMENTE con la siguiente frase o una muy similar y clara: "Recuerda, esta información es solo orientativa y educativa, y de ninguna manera sustituye un diagnóstico médico profesional. Es fundamental que consultes a un médico para una evaluación precisa y cualquier tratamiento necesario."
 
 Basado en los síntomas proporcionados, determina si el tema principal parece ser una Enfermedad de Transmisión Sexual (ETS) o una condición médica general. Establece el campo 'detectedTopic' a 'STI' o 'General' según corresponda. Si no estás seguro o los síntomas son muy ambiguos, establece 'detectedTopic' a 'Unknown'.
 
@@ -84,3 +86,4 @@ const diagnoseIllnessFlow = ai.defineFlow(
     };
   }
 );
+
