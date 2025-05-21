@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Zap, QrCode } from 'lucide-react';
-import NextImage from 'next/image';
+// import NextImage from 'next/image'; // Not used for external QR service
 import { useState, useEffect } from 'react';
 
 export default function HomePage() {
@@ -25,10 +25,10 @@ export default function HomePage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background via-secondary to-background p-6 text-center">
       <div className="bg-card p-8 sm:p-12 rounded-xl shadow-2xl max-w-2xl w-full">
         <Zap className="w-16 h-16 text-primary mx-auto mb-6" />
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-6 text-foreground">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-6 text-foreground">
           Bienvenido a la Herramienta de Pre-Diagnóstico
         </h1>
-        <p className="text-lg sm:text-xl text-muted-foreground mb-8">
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8">
           Explora información sobre posibles condiciones de salud basadas en tus síntomas.
           Desarrollado por POLLO'S PEPES COMPANY WORLD.
         </p>
@@ -46,7 +46,7 @@ export default function HomePage() {
               {/* Using a standard img tag for external QR service to avoid next/image config */}
               <img 
                 src={qrCodeUrl} 
-                alt="Código QR para la herramienta de pre-diagnóstico" 
+                alt="Código QR para la herramienta ETS_byPOLLOSPEPESCOMPANYWORLD" 
                 width={200} 
                 height={200} 
                 className="rounded-md border-4 border-primary shadow-lg"
