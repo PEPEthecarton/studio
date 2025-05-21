@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertTriangle, Search, Image as ImageIconLucide, Download, Sparkles, MessageSquareWarning } from "lucide-react";
+import { Loader2, AlertTriangle, Search, Image as ImageIconLucide, Download, Sparkles, MessageSquareWarning, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Importar los flows y tipos específicos
@@ -112,7 +112,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
         setGeneratedImageUrl(imageResult.imageUrl);
         toast({
             title: "Imagen Conceptual Generada",
-            description: `Se ha generado una imagen conceptual para ${illnessName}.`,
+            description: `Se ha generado una imagen conceptual para ${illnessName}. Esta es una representación artística, no una foto clínica.`,
         });
       } catch (e) {
         console.error(`Error generando imagen desde diagnóstico (${mode}):`, e);
@@ -240,9 +240,9 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
           <Card className="overflow-hidden shadow-lg border-accent/30 border-l-4 mt-6">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">
-                Imagen conceptual para: <span className="text-accent">{diagnosisResult?.potentialIllnessName}</span>
+                1. Imagen Conceptual (Generada por IA) para: <span className="text-accent">{diagnosisResult?.potentialIllnessName}</span>
               </CardTitle>
-              <CardDescription>Esta imagen es una representación conceptual y educativa, <strong>no un diagnóstico visual ni una foto clínica.</strong></CardDescription>
+              <CardDescription>Esta imagen es una representación artística y educativa, <strong>no un diagnóstico visual ni una foto clínica.</strong></CardDescription>
             </CardHeader>
             <CardContent className="p-4">
               <div className="aspect-video relative w-full bg-muted rounded-md overflow-hidden border border-border">
@@ -253,19 +253,19 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
                   objectFit="contain"
                   className="transition-opacity duration-500 opacity-0"
                   onLoadingComplete={(image) => image.classList.remove('opacity-0')}
-                  data-ai-hint={mode === 'STI' ? `sti concept illustration ${diagnosisResult?.potentialIllnessName}` : `illness concept illustration ${diagnosisResult?.potentialIllnessName}`}
+                  data-ai-hint={mode === 'STI' ? `sti concept art ${diagnosisResult?.potentialIllnessName}` : `illness concept art ${diagnosisResult?.potentialIllnessName}`}
                   unoptimized={isDataUrl} 
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex-col sm:flex-row gap-2">
                 <Button
                   variant="outline"
                   onClick={() => {
                     const link = document.createElement('a');
                     link.href = generatedImageUrl;
                     const safeIllnessName = diagnosisResult?.potentialIllnessName?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'ilustracion_medica_conceptual';
-                    link.download = `imagen_conceptual_${safeIllnessName}.png`;
+                    link.download = `imagen_conceptual_ia_${safeIllnessName}.png`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -273,9 +273,42 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
                   className="w-full sm:w-auto text-base py-2.5 px-6"
                 >
                   <Download className="mr-2 h-5 w-5" />
-                  Descargar Imagen
+                  Descargar Imagen (IA)
                 </Button>
             </CardFooter>
+          </Card>
+        )}
+
+        {/* Sección para buscar imágenes en la web */}
+        {(generatedImageUrl || (diagnosisResult && diagnosisResult.potentialIllnessName)) && !isLoadingImage && (
+          <Card className="mt-6 shadow-lg border-primary/30 border-l-4">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                 <Search className="h-7 w-7 text-primary flex-shrink-0" />
+                <CardTitle className="text-lg font-semibold">
+                  2. Para Referencias Visuales Adicionales (Fuentes Externas)
+                </CardTitle>
+              </div>
+              <CardDescription>
+                Si deseas ver ejemplos visuales de cómo podría manifestarse "<strong className="text-accent">{diagnosisResult?.potentialIllnessName || "esta condición"}</strong>", puedes buscar imágenes en sitios web médicos reconocidos.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <p>Considera buscar en (copia y pega el nombre en tu buscador):</p>
+              <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                <li>MedlinePlus (de la Biblioteca Nacional de Medicina de EE. UU.)</li>
+                <li>Sitios web de la Organización Mundial de la Salud (OMS)</li>
+                <li>Portales de Secretarías de Salud o Ministerios de Sanidad de tu país</li>
+                <li>Sitios educativos de clínicas y hospitales universitarios de prestigio</li>
+              </ul>
+              <Alert variant="default" className="bg-secondary/50 border-secondary mt-2">
+                <Info className="h-5 w-5" />
+                <AlertTitle className="font-semibold">Importante al Buscar Imágenes Médicas</AlertTitle>
+                <AlertDescription>
+                  Ten en cuenta que las imágenes médicas pueden ser explícitas o gráficas. Realiza estas búsquedas bajo tu propia discreción y con fines informativos. Esta herramienta no está afiliada a los sitios externos ni controla su contenido.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
           </Card>
         )}
 
@@ -289,3 +322,4 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
     </Card>
   );
 }
+

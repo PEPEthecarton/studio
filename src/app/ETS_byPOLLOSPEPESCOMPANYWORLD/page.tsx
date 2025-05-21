@@ -4,7 +4,7 @@
 import React, { useState, useTransition, useEffect } from "react";
 import NextImage from "next/image";
 import { IllnessDiagnoser } from "@/components/illness-diagnoser";
-import { HeartPulse, ShieldAlert, Image as ImageIconLucide, Download, Lightbulb, Info, MapPin, Microscope, Stethoscope, AlertTriangle as AlertTriangleIcon } from "lucide-react";
+import { HeartPulse, ShieldAlert, Image as ImageIconLucide, Download, Lightbulb, Info, MapPin, Microscope, Stethoscope, AlertTriangle as AlertTriangleIcon, Search } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,13 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
   const [error, setError] = useState<string | null>(null);
   const [isPendingImage, startTransitionImage] = useTransition();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Reset when mode changes if needed, or keep input for user convenience
+    // setIllnessName(""); 
+    setGeneratedImageUrl(null);
+    setError(null);
+  }, [mode]);
 
   const handleGenerate = () => {
     if (!illnessName.trim()) {
@@ -118,7 +125,7 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
           <Card className="overflow-hidden shadow-lg border-accent/30 border-l-4 mt-4">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">
-                Imagen conceptual para: <span className="text-accent">{illnessName}</span>
+                1. Imagen Conceptual (Generada por IA) para: <span className="text-accent">{illnessName}</span>
               </CardTitle>
                <CardDescription>Esta imagen es una representación conceptual y educativa, <strong>no un diagnóstico visual ni una foto clínica.</strong></CardDescription>
             </CardHeader>
@@ -131,19 +138,19 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
                   objectFit="contain"
                   className="transition-opacity duration-500 opacity-0"
                   onLoadingComplete={(image) => image.classList.remove('opacity-0')}
-                  data-ai-hint={mode === 'STI' ? `sti illustration abstract ${illnessName}` : `medical illustration abstract ${illnessName}`}
+                  data-ai-hint={mode === 'STI' ? `sti concept art ${illnessName}` : `medical concept art ${illnessName}`}
                   unoptimized={isDataUrl}
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex-col sm:flex-row gap-2">
                 <Button
                   variant="outline"
                   onClick={() => {
                     const link = document.createElement('a');
                     link.href = generatedImageUrl;
                     const safeIllnessName = illnessName?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'ilustracion_medica';
-                    link.download = `imagen_conceptual_${safeIllnessName}.png`;
+                    link.download = `imagen_conceptual_ia_${safeIllnessName}.png`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -151,9 +158,41 @@ function StandaloneImageGenerator({ mode }: { mode: DiagnosisMode }) {
                   className="w-full sm:w-auto text-base py-2.5 px-6"
                 >
                   <Download className="mr-2 h-5 w-5" />
-                  Descargar Imagen
+                  Descargar Imagen (IA)
                 </Button>
             </CardFooter>
+          </Card>
+        )}
+        {/* Sección para buscar imágenes en la web para el generador independiente */}
+        {generatedImageUrl && illnessName && !isLoading && (
+          <Card className="mt-6 shadow-lg border-primary/30 border-l-4">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                 <Search className="h-7 w-7 text-primary flex-shrink-0" />
+                <CardTitle className="text-lg font-semibold">
+                  2. Para Referencias Visuales Adicionales (Fuentes Externas)
+                </CardTitle>
+              </div>
+              <CardDescription>
+                Si deseas ver ejemplos visuales de cómo podría manifestarse "<strong className="text-accent">{illnessName}</strong>", puedes buscar imágenes en sitios web médicos reconocidos.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <p>Considera buscar en (copia y pega el nombre en tu buscador):</p>
+              <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                <li>MedlinePlus (de la Biblioteca Nacional de Medicina de EE. UU.)</li>
+                <li>Sitios web de la Organización Mundial de la Salud (OMS)</li>
+                <li>Portales de Secretarías de Salud o Ministerios de Sanidad de tu país</li>
+                <li>Sitios educativos de clínicas y hospitales universitarios de prestigio</li>
+              </ul>
+               <Alert variant="default" className="bg-secondary/50 border-secondary mt-2">
+                <Info className="h-5 w-5" />
+                <AlertTitle className="font-semibold">Importante al Buscar Imágenes Médicas</AlertTitle>
+                <AlertDescription>
+                  Ten en cuenta que las imágenes médicas pueden ser explícitas o gráficas. Realiza estas búsquedas bajo tu propia discreción y con fines informativos. Esta herramienta no está afiliada a los sitios externos ni controla su contenido.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
           </Card>
         )}
       </CardContent>
@@ -275,27 +314,3 @@ export default function EtsByPollosPepesCompanyWorldPage() {
     </div>
   );
 }
-
-/* AlertTriangleIcon is already defined in the original file.
-   If it were missing, it would be:
-function AlertTriangleIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-      <path d="M12 9v4" />
-      <path d="M12 17h.01" />
-    </svg>
-  )
-}
-*/
