@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Asistente de Pre-Diagnóstico Médico AI',
-  description: 'Herramienta educativa para entender posibles condiciones de salud basada en síntomas. Siempre consulta a un médico.',
+  title: 'ETS Pre-Diagnóstico by POLLO\'S PEPES COMPANY WORLD',
+  description: 'Herramienta educativa de pre-diagnóstico para ETS, por POLLO\'S PEPES COMPANY WORLD. Este sitio te ayuda a informarte. Recuerda siempre consultar a un médico.',
 };
 
 export default function RootLayout({
