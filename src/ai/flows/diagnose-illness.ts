@@ -31,9 +31,9 @@ const DiagnoseIllnessOutputSchema = z.object({
     .string()
     .describe('Una advertencia fija y destacada sobre la necesidad de consultar a un profesional médico.'),
   detectedTopic: z
-    .enum(['STI', 'General', 'Unknown'])
+    .enum(['ITS', 'General', 'Unknown'])
     .describe(
-      "Indica si los síntomas descritos parecen estar predominantemente relacionados con una ETS ('STI'), una condición médica general ('General'), o si no está claro ('Unknown')."
+      "Indica si los síntomas descritos parecen estar predominantemente relacionados con una ITS ('ITS'), una condición médica general ('General'), o si no está claro ('Unknown')."
     ),
 });
 export type DiagnoseIllnessOutput = z.infer<typeof DiagnoseIllnessOutputSchema>;
@@ -61,7 +61,7 @@ Tu objetivo es proporcionar una respuesta estructurada y útil en español. Sigu
 
 6.  **Advertencia Final (CRUCIAL):** El 'diagnosisSummary' DEBE CONCLUIR INVARIABLEMENTE con la siguiente frase o una muy similar y clara: "Recuerda, esta información es solo orientativa y educativa, y de ninguna manera sustituye un diagnóstico médico profesional. Es fundamental que consultes a un médico para una evaluación precisa y cualquier tratamiento necesario."
 
-Basado en los síntomas proporcionados, determina si el tema principal parece ser una Enfermedad de Transmisión Sexual (ETS) o una condición médica general. Establece el campo 'detectedTopic' a 'STI' o 'General' según corresponda. Si no estás seguro o los síntomas son muy ambiguos, establece 'detectedTopic' a 'Unknown'.
+Basado en los síntomas proporcionados, determina si el tema principal parece ser una Infección de Transmisión Sexual (ITS) o una condición médica general. Establece el campo 'detectedTopic' a 'ITS' o 'General' según corresponda. Si no estás seguro o los síntomas son muy ambiguos, establece 'detectedTopic' a 'Unknown'.
 
 El campo 'importantWarning' debe ser un texto fijo (se asignará después, no lo generes aquí).
 Proporciona toda la información en español.

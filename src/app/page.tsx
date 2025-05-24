@@ -14,7 +14,7 @@ export default function HomePage() {
     // Ensure this runs only on the client where window is defined
     if (typeof window !== 'undefined') {
       const currentOrigin = window.location.origin;
-      const toolPageUrl = `${currentOrigin}/ETS_byPOLLOSPEPESCOMPANYWORLD`;
+      const toolPageUrl = `${currentOrigin}/ITS_byPOLLOSPEPESCOMPANYWORLD`;
       setPageUrl(toolPageUrl);
       
       // Add a cache-busting parameter to the QR code URL
@@ -48,7 +48,7 @@ export default function HomePage() {
               {qrCodeUrl && (
                 <img 
                   src={qrCodeUrl} 
-                  alt="Código QR para la herramienta ETS_byPOLLOSPEPESCOMPANYWORLD" 
+                  alt="Código QR para la herramienta ITS_byPOLLOSPEPESCOMPANYWORLD" 
                   width={160} 
                   height={160} 
                   className="rounded-md border-4 border-primary shadow-lg w-[160px] h-[160px] sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px]"
@@ -56,12 +56,12 @@ export default function HomePage() {
               )}
             </div>
             <p className="text-xs text-muted-foreground break-words">
-              O comparte este enlace: <a href={pageUrl} className="text-primary hover:underline font-semibold">ETS_POLLOSPEPESWORLDCOMPAMPANY</a>
+              O comparte este enlace: <Link href="/ITS_byPOLLOSPEPESCOMPANYWORLD" className="text-primary hover:underline font-semibold">ITS_POLLOSPEPESWORLDCOMPAMPANY</Link>
             </p>
           </div>
         )}
 
-        <Link href="/ETS_byPOLLOSPEPESCOMPANYWORLD" passHref legacyBehavior>
+        <Link href="/ITS_byPOLLOSPEPESCOMPANYWORLD" passHref legacyBehavior>
           <Button 
             size="lg" 
             className="w-full sm:w-auto text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 px-6 sm:px-8 py-3 sm:py-2.5"

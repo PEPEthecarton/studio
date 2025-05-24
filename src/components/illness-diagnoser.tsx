@@ -10,15 +10,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, AlertTriangle, Search, Image as ImageIconLucide, Download, Sparkles, MessageSquareWarning, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Importar los flows y tipos específicos
 import { diagnoseIllness, type DiagnoseIllnessInput, type DiagnoseIllnessOutput as DiagnoseGeneralOutput } from "@/ai/flows/diagnose-illness";
-import { diagnoseSTI, type DiagnoseSTIInput, type DiagnoseSTIOutput } from "@/ai/flows/diagnose-sti";
+import { diagnoseITS, type DiagnoseITSInput, type DiagnoseITSOutput } from "@/ai/flows/diagnose-its"; // Changed from STI to ITS
 import { generateIllnessImage, type GenerateIllnessImageInput as GenerateGeneralImageInput } from "@/ai/flows/generate-illness-image";
-import { generateSTIImage, type GenerateSTIImageInput } from "@/ai/flows/generate-sti-image";
-import type { GenerateIllnessImageOutput } from "@/ai/flows/generate-illness-image"; // Output es similar
+import { generateITSImage, type GenerateITSImageInput } from "@/ai/flows/generate-its-image"; // Changed from STI to ITS
+import type { GenerateIllnessImageOutput } from "@/ai/flows/generate-illness-image"; 
 
-type DiagnosisMode = 'STI' | 'General';
-type CombinedDiagnosisOutput = (DiagnoseGeneralOutput | DiagnoseSTIOutput) & { detectedTopic?: 'STI' | 'General' | 'Unknown' };
+type DiagnosisMode = 'ITS' | 'General'; // Changed from STI to ITS
+type CombinedDiagnosisOutput = (DiagnoseGeneralOutput | DiagnoseITSOutput) & { detectedTopic?: 'ITS' | 'General' | 'Unknown' }; // Changed from STI to ITS
 
 
 interface IllnessDiagnoserProps {
@@ -37,7 +36,6 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
   const [isPendingImage, startTransitionImage] = useTransition();
   const { toast } = useToast();
 
-  // Reset state when mode changes
   useEffect(() => {
     setSymptoms("");
     setDiagnosisResult(null);
@@ -61,9 +59,9 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
     startTransitionDiagnosis(async () => {
       try {
         let result: CombinedDiagnosisOutput;
-        if (mode === 'STI') {
-          const input: DiagnoseSTIInput = { symptoms: symptoms.trim() };
-          result = await diagnoseSTI(input);
+        if (mode === 'ITS') {
+          const input: DiagnoseITSInput = { symptoms: symptoms.trim() };
+          result = await diagnoseITS(input);
         } else {
           const input: DiagnoseIllnessInput = { symptoms: symptoms.trim() };
           result = await diagnoseIllness(input);
@@ -102,9 +100,9 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
       try {
         let imageResult: GenerateIllnessImageOutput;
         const illnessName = diagnosisResult.potentialIllnessName!;
-        if (mode === 'STI') {
-            const input: GenerateSTIImageInput = { stiName: illnessName };
-            imageResult = await generateSTIImage(input);
+        if (mode === 'ITS') {
+            const input: GenerateITSImageInput = { itsName: illnessName };
+            imageResult = await generateITSImage(input);
         } else {
             const input: GenerateGeneralImageInput = { illnessName: illnessName };
             imageResult = await generateIllnessImage(input);
@@ -134,7 +132,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
     <Card className="shadow-xl rounded-lg overflow-hidden w-full">
       <CardHeader className="bg-card">
         <CardTitle className="text-xl font-semibold">
-          Describe tus Síntomas {mode === 'STI' ? '(Enfoque ETS)' : '(Enfoque General)'}
+          Describe tus Síntomas {mode === 'ITS' ? '(Enfoque ITS)' : '(Enfoque General)'}
         </CardTitle>
         <CardDescription className="text-muted-foreground">
           Ingresa una descripción detallada de cómo te sientes. La IA ofrecerá información general y educativa según el enfoque seleccionado.
@@ -146,7 +144,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
             value={symptoms}
             onChange={(e) => setSymptoms(e.target.value)}
             placeholder={
-              mode === 'STI' 
+              mode === 'ITS' 
               ? "Ej: He notado irritación y flujo inusual en mis genitales..." 
               : "Ej: Tengo fiebre alta, dolor de cabeza y fatiga desde hace tres días..."
             }
@@ -164,7 +162,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
             ) : (
               <Sparkles className="mr-2 h-5 w-5" />
             )}
-            Obtener Pre-Diagnóstico AI {mode === 'STI' ? '(ETS)' : '(General)'}
+            Obtener Pre-Diagnóstico AI {mode === 'ITS' ? '(ITS)' : '(General)'}
           </Button>
         </div>
 
@@ -202,7 +200,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
               </Alert>
               
               <div>
-                <h4 className="font-semibold text-lg mb-2 text-foreground">Resumen Basado en tus Síntomas ({mode === 'STI' ? 'Enfoque ETS' : 'Enfoque General'}):</h4>
+                <h4 className="font-semibold text-lg mb-2 text-foreground">Resumen Basado en tus Síntomas ({mode === 'ITS' ? 'Enfoque ITS' : 'Enfoque General'}):</h4>
                 <p className="text-base text-foreground whitespace-pre-wrap leading-relaxed">
                   {diagnosisResult.diagnosisSummary}
                 </p>
@@ -253,7 +251,7 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
                   objectFit="contain"
                   className="transition-opacity duration-500 opacity-0"
                   onLoadingComplete={(image) => image.classList.remove('opacity-0')}
-                  data-ai-hint={mode === 'STI' ? `sti concept art ${diagnosisResult?.potentialIllnessName}` : `illness concept art ${diagnosisResult?.potentialIllnessName}`}
+                  data-ai-hint={mode === 'ITS' ? `its concept art ${diagnosisResult?.potentialIllnessName}` : `illness concept art ${diagnosisResult?.potentialIllnessName}`}
                   unoptimized={isDataUrl} 
                 />
               </div>
@@ -279,7 +277,6 @@ export function IllnessDiagnoser({ mode, onModeSwitchSuggested }: IllnessDiagnos
           </Card>
         )}
 
-        {/* Sección para buscar imágenes en la web */}
         {(generatedImageUrl || (diagnosisResult && diagnosisResult.potentialIllnessName)) && !isLoadingImage && (
           <Card className="mt-6 shadow-lg border-primary/30 border-l-4">
             <CardHeader>
