@@ -2,6 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  output: 'standalone', // Añadido para una mejor integración con Firebase Hosting y otros PaaS
   typescript: {
     ignoreBuildErrors: true,
   },

@@ -1,0 +1,13 @@
+{
+  "hosting": {
+    "source": ".", // Indica que Firebase debe buscar el framework en el directorio actual
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "us-central1" // Puedes cambiar esto a la región que seleccionaste o la más cercana
+    }
+  }
+}
